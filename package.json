@@ -29,8 +29,7 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1",
-    "ts-node": "^10.9.2"
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.2",
@@ -48,9 +47,10 @@
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
     "prisma": "^5.18.0",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "ts-node": "^10.9.2"
   },
   "prisma": {
-    "seed": "node --loader ts-node/esm prisma/seed.ts"
+    "seed": "node dist/prisma/seed.js"
   }
 }
