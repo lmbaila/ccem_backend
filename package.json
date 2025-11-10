@@ -1,8 +1,6 @@
 {
   "name": "sb-events-backend-clean",
   "version": "1.0.0",
-  "description": "SB Events backend (Clean Architecture) - NestJS + Prisma + JWT + Swagger",
-  "main": "dist/main.js",
   "scripts": {
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
@@ -10,12 +8,9 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "db:seed": "ts-node prisma/seed.ts",
-    "lint": "eslint . --ext .ts --fix",
-    "start:prod": "node dist/src/main.js",
     "seed": "npm run db:seed",
-    "prisma": {
-      "seed": "ts-node prisma/seed.ts"
-    }
+    "lint": "eslint . --ext .ts --fix",
+    "start:prod": "node dist/src/main.js"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.2",
@@ -52,5 +47,8 @@
     "prisma": "^5.18.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }
