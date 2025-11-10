@@ -8,7 +8,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async enableShutdownHooks(app: INestApplication) {
-    // Forca o tipo para contornar o erro TS2345
+    // Corrige o erro TS2345
     (this as any).$on('beforeExit', async () => {
       await app.close();
     });
