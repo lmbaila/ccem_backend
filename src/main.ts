@@ -14,6 +14,7 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000', // frontend React/Next
       'http://localhost:3001', // Figma ou outro endpoint local
+      'https://ccem.riseconsulting.co.mz',
     ],
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
