@@ -1,6 +1,8 @@
 {
   "name": "sb-events-backend-clean",
   "version": "1.0.0",
+  "description": "SB Events backend (Clean Architecture) - NestJS + Prisma + JWT + Swagger",
+  "main": "dist/main.js",
   "scripts": {
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
