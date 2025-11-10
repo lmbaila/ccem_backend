@@ -3,12 +3,22 @@ import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  private static instance: PrismaService;
+
+  constructor() {
+    // 🔁 Garante Singleton (uma única instância global)
+    if (!PrismaService.instance) {
+      super();
+      PrismaService.instance = this;
+    }
+    return PrismaService.instance;
+  }
+
   async onModuleInit() {
     await this.$connect();
   }
 
   async enableShutdownHooks(app: INestApplication) {
-    // Corrige o erro TS2345
     (this as any).$on('beforeExit', async () => {
       await app.close();
     });
