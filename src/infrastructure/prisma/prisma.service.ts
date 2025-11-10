@@ -6,7 +6,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private static instance: PrismaService;
 
   constructor() {
-    // 🔁 Garante Singleton (uma única instância global)
     if (!PrismaService.instance) {
       super();
       PrismaService.instance = this;
