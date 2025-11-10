@@ -1,0 +1,36 @@
+
+version: '3.9'
+services:
+  postgres:
+    image: postgres:16
+    container_name: sb-events-db
+    restart: always
+    environment:
+      POSTGRES_USER: sbadmin
+      POSTGRES_PASSWORD: sbpass
+      POSTGRES_DB: sb_events
+    ports:
+      - "5432:5432"
+    volumes:
+      - sb-events-data:/var/lib/postgresql/data
+  api:
+    build: .
+    container_name: sb-events-api
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: "postgresql://sbadmin:sbpass@postgres:5432/sb_events?schema=public"
+      JWT_SECRET: "sb-events-secret"
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    command: >
+      sh -c "npx prisma migrate deploy &&
+             npx prisma db seed &&
+             npm run start:dev"
+    volumes:
+      - .:/usr/src/app
+    working_dir: /usr/src/app
+volumes:
+  sb-events-data:

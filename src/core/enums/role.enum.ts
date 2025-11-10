@@ -1,0 +1,5 @@
+export enum Role {
+  ADMIN = 'ADMIN',
+  COMMANDCENTRE = 'COMMANDCENTRE',
+  VIEWER = 'VIEWER',
+}

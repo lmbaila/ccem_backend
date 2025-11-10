@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  COMMANDCENTRE
+  VIEWER
+}
+
+enum EventStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  username  String     @unique
+  firstname String
+  lastname  String
+  email     String     @unique
+  password  String
+  role      Role
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  events    Event[]    @relation("EventCreator")
+  feedbacks Feedback[]
+}
+
+model Dashboard {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  Event       Event[]
+}
+
+model Service {
+  id          Int            @id @default(autoincrement())
+  name        String         @unique
+  description String
+  eventLinks  EventService[]
+}
+
+model Team {
+  id    Int          @id @default(autoincrement())
+  name  String       @unique
+  techs Technician[]
+}
+
+model Technician {
+  id         Int               @id @default(autoincrement())
+  name       String
+  code       String            @unique
+  email      String            @unique
+  teamId     Int?
+  team       Team?             @relation(fields: [teamId], references: [id])
+  eventLinks EventTechnician[]
+}
+
+model Event {
+  id          String            @id @default(uuid()) @db.Uuid
+  code        String            @unique
+  summary     String
+  description String
+  ticket      String?
+  dashboardId Int
+  status      EventStatus
+  priority    Priority
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  createdById Int
+  createdBy   User              @relation("EventCreator", fields: [createdById], references: [id])
+  dashboard   Dashboard         @relation(fields: [dashboardId], references: [id])
+  services    EventService[]
+  technicians EventTechnician[]
+  feedbacks   Feedback[]
+}
+
+model EventService {
+  eventId   String   @db.Uuid
+  serviceId Int
+  startAt   DateTime
+  endAt     DateTime?
+
+  event   Event   @relation(fields: [eventId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+
+  @@id([eventId, serviceId])
+}
+
+model EventTechnician {
+  eventId      String   @db.Uuid
+  technicianId Int
+
+  event      Event      @relation(fields: [eventId], references: [id])
+  technician Technician @relation(fields: [technicianId], references: [id])
+
+  @@id([eventId, technicianId])
+}
+
+model Feedback {
+  id          Int      @id @default(autoincrement())
+  comment     String
+  rating      Int?
+  eventId     String   @db.Uuid
+  createdById Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event     Event @relation(fields: [eventId], references: [id])
+  createdBy User  @relation(fields: [createdById], references: [id])
+}
