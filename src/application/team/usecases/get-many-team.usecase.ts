@@ -1,7 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ITeamRepository, GetManyTeamInput } from 'src/core/repositories/team.repository';
-
-export const TEAM_REPOSITORY = Symbol('TEAM_REPOSITORY');
+import {
+  ITeamRepository,
+  GetManyTeamInput,
+  TEAM_REPOSITORY,
+} from 'src/core/repositories/team.repository';
 
 @Injectable()
 export class GetManyTeamUseCase {

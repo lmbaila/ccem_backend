@@ -64,4 +64,21 @@ export class PrismaTeamRepository implements ITeamRepository {
       data: teamsWithCount,
     };
   }
+  async findByName(name: string) {
+    return this.prisma.team.findUnique({ where: { name } });
+  }
+
+  async create(data: { name: string }) {
+    return this.prisma.team.create({ data });
+  }
+  findById(id: number) {
+    return this.prisma.team.findUnique({ where: { id } });
+  }
+
+  update(id: number, data: { name: string }) {
+    return this.prisma.team.update({
+      where: { id },
+      data,
+    });
+  }
 }

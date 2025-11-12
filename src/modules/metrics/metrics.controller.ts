@@ -9,6 +9,10 @@ import { GetTimelineUseCase } from '../../application/metrics/usecases/get-timel
 import { GetMetricsRangeDto, type MetricsRange } from './dto/get-metrics-range.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { GetUnavailableServicesDto } from './dto/get-unavailable-services.dto';
+import { GetServiceAvailabilityDto } from 'src/modules/metrics/dto/get-service-availability.dto';
+import { GetServiceAvailabilityUseCase } from 'src/application/metrics/usecases/get-service-availability.usecase';
+import { GetServiceEventsDto } from './dto/get-service-events.dto';
+import { GetServiceEventsUseCase } from 'src/application/metrics/usecases/get-service-events.usecase';
 
 @ApiTags('metrics')
 @Public()
@@ -21,6 +25,8 @@ export class MetricsController {
     private readonly liveUc: GetLiveFeedbacksUseCase,
     private readonly dashboardsUc: GetDashboardEventsUseCase,
     private readonly timelineUc: GetTimelineUseCase,
+    private readonly serviceAvailability: GetServiceAvailabilityUseCase,
+    private readonly serviceEventsUc: GetServiceEventsUseCase,
   ) {}
 
   @Get('overview')
@@ -84,5 +90,22 @@ export class MetricsController {
   timeline(@Query() q: GetMetricsRangeDto) {
     const range: MetricsRange = (q.range ?? 'daily') as MetricsRange;
     return this.timelineUc.execute(range);
+  }
+
+  @Get('service-availability')
+  @ApiOperation({
+    summary:
+      'Retorna uptime, downtime, incidentes e percentagem de disponibilidade por serviço e mês',
+  })
+  async getAvailability(@Query() query: GetServiceAvailabilityDto) {
+    return this.serviceAvailability.execute(query);
+  }
+
+  @Get('service-events')
+  @ApiOperation({
+    summary: 'Lista eventos por serviço em um período e calcula disponibilidade/downtime.',
+  })
+  async getServiceEvents(@Query() query: GetServiceEventsDto) {
+    return this.serviceEventsUc.execute(query);
   }
 }

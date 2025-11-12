@@ -8,6 +8,8 @@ import { GetUnavailableServicesUseCase } from '../../application/metrics/usecase
 import { GetLiveFeedbacksUseCase } from '../../application/metrics/usecases/get-live-feedbacks.usecase';
 import { GetDashboardEventsUseCase } from '../../application/metrics/usecases/get-dashboard-events.usecase';
 import { GetTimelineUseCase } from '../../application/metrics/usecases/get-timeline.usecase';
+import { GetServiceAvailabilityUseCase } from 'src/application/metrics/usecases/get-service-availability.usecase';
+import { GetServiceEventsUseCase } from 'src/application/metrics/usecases/get-service-events.usecase';
 
 @Module({
   controllers: [MetricsController],
@@ -20,6 +22,8 @@ import { GetTimelineUseCase } from '../../application/metrics/usecases/get-timel
     GetLiveFeedbacksUseCase,
     GetDashboardEventsUseCase,
     GetTimelineUseCase,
+    GetServiceAvailabilityUseCase,
+    GetServiceEventsUseCase,
   ],
   exports: [],
 })

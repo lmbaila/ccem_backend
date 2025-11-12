@@ -47,8 +47,8 @@
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
     "prisma": "^5.18.0",
-    "typescript": "^5.5.4",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
   },
   "prisma": {
     "seed": "node dist/prisma/seed.js"

@@ -1,8 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { formatDurationHuman, getDateFromRange } from '../../utils/date-range.util';
 import { MetricsRange } from 'src/modules/metrics/dto/get-metrics-range.dto';
-
+import { parse, addMonths, isAfter, format } from 'date-fns';
+import { GetServiceAvailabilityDto } from 'src/modules/metrics/dto/get-service-availability.dto';
+function parseMonthYear(value: string): Date {
+  const [month, year] = value.split('/').map(Number);
+  return new Date(year, month - 1, 1); // mês - 1 porque Date() usa base 0 (0 = Jan)
+}
 @Injectable()
 export class PrismaMetricsRepository {
   constructor(private prisma: PrismaService) {}
@@ -233,5 +238,88 @@ export class PrismaMetricsRepository {
       const end = l.endAt ? new Date(l.endAt).getTime() : Date.now();
       return acc + Math.max(end - start, 0);
     }, 0);
+  }
+
+  async getServiceAvailability(input: GetServiceAvailabilityDto) {
+    const { services = [], startPeriod, endPeriod, target = 99 } = input;
+
+    // Validacao logica
+    const startDate = parseMonthYear(startPeriod);
+    const endDate = parseMonthYear(endPeriod);
+    if (isAfter(startDate, endDate)) {
+      throw new BadRequestException('O período final deve ser posterior ao inicial.');
+    }
+
+    // Gerar lista de meses no intervalo
+    const months: { label: string; start: Date; end: Date }[] = [];
+    let current = startDate;
+    while (!isAfter(current, endDate)) {
+      const label = `${format(current, 'MMM')}/${format(current, 'yy')}`;
+      const next = addMonths(current, 1);
+      months.push({ label, start: current, end: next });
+      current = next;
+    }
+
+    // Buscar servicos
+    const selectedServices = services.length
+      ? await this.prisma.service.findMany({ where: { id: { in: services } } })
+      : await this.prisma.service.findMany();
+
+    if (!selectedServices.length) {
+      throw new BadRequestException('Nenhum serviço encontrado.');
+    }
+
+    // Calcular metricas por servico e mes
+    const result = await Promise.all(
+      selectedServices.map(async (srv) => {
+        const monthly = await Promise.all(
+          months.map(async (m) => {
+            const events = await this.prisma.eventService.findMany({
+              where: {
+                serviceId: srv.id,
+                startAt: { gte: m.start, lt: m.end },
+              },
+            });
+
+            const totalMinutes = 30 * 24 * 60;
+            const downtimeMinutes = events.reduce((acc, e) => {
+              const start = e.startAt ? new Date(e.startAt).getTime() : 0;
+              const end = e.endAt ? new Date(e.endAt).getTime() : start;
+              return acc + Math.max((end - start) / (1000 * 60), 0);
+            }, 0);
+
+            const uptimeMinutes = totalMinutes - downtimeMinutes;
+            const availabilityPercent = (uptimeMinutes / totalMinutes) * 100;
+            const incidents = events.length;
+
+            return {
+              month: m.label,
+              uptimeMinutes,
+              downtimeMinutes,
+              availabilityPercent: Number(availabilityPercent.toFixed(2)),
+              incidents,
+            };
+          }),
+        );
+
+        const avgAvailability =
+          monthly.reduce((acc, m) => acc + m.availabilityPercent, 0) / monthly.length;
+
+        return {
+          serviceId: srv.id,
+          serviceName: srv.name,
+          averageAvailability: Number(avgAvailability.toFixed(2)),
+          data: monthly,
+        };
+      }),
+    );
+
+    return {
+      period: `${startPeriod} - ${endPeriod}`,
+      target,
+      totalServices: result.length,
+      generatedAt: new Date(),
+      result,
+    };
   }
 }
