@@ -8,6 +8,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
   Max,
   Min,
   ValidateNested,
@@ -72,22 +73,25 @@ export class CreateEventDto {
   @IsNotEmpty()
   description!: string;
 
-  @ApiPropertyOptional({ example: '021913822891M' })
-  @IsOptional()
+  @ApiPropertyOptional({ example: 'INC000011464847' })
+  @IsNotEmpty({ message: 'O ticket é obrigatório' })
+  @Matches(/^INC\d{12}$/, {
+    message: 'Formato inválido. Use: INC seguido de 12 dígitos (ex: INC000011464847)',
+  })
   @IsString()
-  ticket?: string;
+  ticket!: string;
 
   @ApiProperty({ example: 1, description: 'ID do dashboard (ferramenta de monitoria).' })
   @IsNumber()
   dashboardId!: number;
 
   @ApiProperty({
-    enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED'],
+    enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
     example: 'PENDING',
     description: 'Estado atual do evento.',
   })
-  @IsEnum(['PENDING', 'IN_PROGRESS', 'COMPLETED'] as const)
-  status!: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  @IsEnum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const)
+  status!: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
   @ApiProperty({
     enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],

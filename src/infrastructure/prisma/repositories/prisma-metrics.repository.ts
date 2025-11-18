@@ -77,7 +77,7 @@ export class PrismaMetricsRepository {
       include: {
         eventLinks: {
           where: {
-            event: { createdAt: { gte: since } },
+            event: { createdAt: { gte: since }, status: { not: 'CANCELLED' } },
           },
           select: { startAt: true, endAt: true },
         },
@@ -143,6 +143,13 @@ export class PrismaMetricsRepository {
         event: { select: { code: true, summary: true } },
         createdBy: { select: { username: true } },
       },
+      where: {
+        event: {
+          status: {
+            not: 'CANCELLED',
+          },
+        },
+      },
     });
 
     return {
@@ -164,7 +171,7 @@ export class PrismaMetricsRepository {
     const dashboards = await this.prisma.dashboard.findMany({
       include: {
         Event: {
-          where: { createdAt: { gte: since } },
+          where: { createdAt: { gte: since }, status: { not: 'CANCELLED' } },
           select: { id: true, status: true, priority: true },
         },
       },
@@ -193,7 +200,7 @@ export class PrismaMetricsRepository {
 
     // simplificado em JS; se quiser ultra-perf, podes usar raw SQL agrupando por date_trunc
     const events = await this.prisma.event.findMany({
-      where: { createdAt: { gte: since } },
+      where: { createdAt: { gte: since }, status: { not: 'CANCELLED' } },
       select: { createdAt: true, status: true, updatedAt: true },
       orderBy: { createdAt: 'asc' },
     });
@@ -230,7 +237,7 @@ export class PrismaMetricsRepository {
   /** helper: downtime acumulado do periodo (todos os servicos) */
   private async totalDowntimeInRangeMs(since: Date) {
     const links = await this.prisma.eventService.findMany({
-      where: { event: { createdAt: { gte: since } } },
+      where: { event: { createdAt: { gte: since }, status: { not: 'CANCELLED' } } },
       select: { startAt: true, endAt: true },
     });
     return links.reduce((acc, l) => {

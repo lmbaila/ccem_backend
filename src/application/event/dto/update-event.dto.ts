@@ -2,9 +2,11 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsEnum,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
   Max,
   Min,
   ValidateNested,
@@ -83,21 +85,23 @@ export class UpdateEventDto {
   description?: string;
 
   @ApiPropertyOptional({
-    example: '021913822891M',
+    example: 'INC000011464847',
     description: 'Numero do ticket associado (se houver).',
   })
-  @IsOptional()
-  @IsString()
-  ticket?: string;
+  @IsNotEmpty({ message: 'O ticket é obrigatório' })
+  @Matches(/^INC\d{12}$/, {
+    message: 'Formato inválido. Use: INC seguido de 12 dígitos (ex: INC000011464847)',
+  })
+  ticket!: string;
 
   @ApiPropertyOptional({
-    enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED'],
+    enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
     example: 'IN_PROGRESS',
     description: 'Novo estado do evento.',
   })
   @IsOptional()
-  @IsEnum(['PENDING', 'IN_PROGRESS', 'COMPLETED'] as const)
-  status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  @IsEnum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const)
+  status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
   @ApiPropertyOptional({
     enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],

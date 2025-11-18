@@ -261,4 +261,16 @@ export class PrismaEventRepository implements IEventRepository {
       },
     });
   }
+  async findByTicket(ticket: string) {
+    return this.prisma.event.findFirst({
+      where: { ticket },
+      include: {
+        services: { include: { service: true } },
+        technicians: { include: { technician: true } },
+        feedbacks: true,
+        dashboard: true,
+        createdBy: true,
+      },
+    });
+  }
 }

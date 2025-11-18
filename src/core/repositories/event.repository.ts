@@ -51,7 +51,7 @@ export interface UpdateEventInput {
   summary?: string;
   description?: string;
   ticket?: string | null;
-  status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
   services?: ServiceImpactInput[];
@@ -72,4 +72,5 @@ export interface IEventRepository {
   update(id: string, input: UpdateEventInput): Promise<any>;
   delete(id: string): Promise<any>;
   getByCode(code: string): Promise<any>;
+  findByTicket(ticket: string): Promise<any>;
 }
