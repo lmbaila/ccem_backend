@@ -2,7 +2,7 @@
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'COMMANDCENTRE', 'VIEWER');
 
 -- CreateEnum
-CREATE TYPE "EventStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED');
+CREATE TYPE "EventStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
 
 -- CreateEnum
 CREATE TYPE "Priority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
@@ -130,6 +130,9 @@ CREATE UNIQUE INDEX "Technician_email_key" ON "Technician"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Event_code_key" ON "Event"("code");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Event_ticket_key" ON "Event"("ticket");
 
 -- AddForeignKey
 ALTER TABLE "Technician" ADD CONSTRAINT "Technician_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
