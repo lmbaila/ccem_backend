@@ -23,9 +23,9 @@ export interface FeedbackInput {
 export interface CreateEventInput {
   summary: string;
   description: string;
-  ticket?: string | null;
+  ticket: string;
   dashboardId: number;
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
   /** Servicos impactados (obrigatorio pelo menos um) */
@@ -50,7 +50,7 @@ export interface CreateEventInput {
 export interface UpdateEventInput {
   summary?: string;
   description?: string;
-  ticket?: string | null;
+  ticket: string;
   status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
