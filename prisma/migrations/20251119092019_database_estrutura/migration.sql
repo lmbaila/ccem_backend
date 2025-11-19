@@ -1,9 +1,5 @@
--- CreateEnum Role (safe)
-DO $$ BEGIN
-    CREATE TYPE "Role" AS ENUM ('ADMIN', 'COMMANDCENTRE', 'VIEWER');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'COMMANDCENTRE', 'VIEWER');
 
 -- CreateEnum
 CREATE TYPE "EventStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
@@ -69,7 +65,7 @@ CREATE TABLE "Event" (
     "code" TEXT NOT NULL,
     "summary" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "ticket" TEXT,
+    "ticket" TEXT NOT NULL,
     "dashboardId" INTEGER NOT NULL,
     "status" "EventStatus" NOT NULL,
     "priority" "Priority" NOT NULL,
@@ -139,46 +135,28 @@ CREATE UNIQUE INDEX "Event_code_key" ON "Event"("code");
 CREATE UNIQUE INDEX "Event_ticket_key" ON "Event"("ticket");
 
 -- AddForeignKey
-ALTER TABLE "Technician" ADD CONSTRAINT "Technician_teamId_fkey"
-  FOREIGN KEY ("teamId") REFERENCES "Team"("id")
-  ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Technician" ADD CONSTRAINT "Technician_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Event" ADD CONSTRAINT "Event_createdById_fkey"
-  FOREIGN KEY ("createdById") REFERENCES "User"("id")
-  ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Event" ADD CONSTRAINT "Event_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Event" ADD CONSTRAINT "Event_dashboardId_fkey"
-  FOREIGN KEY ("dashboardId") REFERENCES "Dashboard"("id")
-  ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Event" ADD CONSTRAINT "Event_dashboardId_fkey" FOREIGN KEY ("dashboardId") REFERENCES "Dashboard"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "EventService" ADD CONSTRAINT "EventService_eventId_fkey"
-  FOREIGN KEY ("eventId") REFERENCES "Event"("id")
-  ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "EventService" ADD CONSTRAINT "EventService_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "EventService" ADD CONSTRAINT "EventService_serviceId_fkey"
-  FOREIGN KEY ("serviceId") REFERENCES "Service"("id")
-  ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "EventService" ADD CONSTRAINT "EventService_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "EventTechnician" ADD CONSTRAINT "EventTechnician_eventId_fkey"
-  FOREIGN KEY ("eventId") REFERENCES "Event"("id")
-  ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "EventTechnician" ADD CONSTRAINT "EventTechnician_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "EventTechnician" ADD CONSTRAINT "EventTechnician_technicianId_fkey"
-  FOREIGN KEY ("technicianId") REFERENCES "Technician"("id")
-  ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "EventTechnician" ADD CONSTRAINT "EventTechnician_technicianId_fkey" FOREIGN KEY ("technicianId") REFERENCES "Technician"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_eventId_fkey"
-  FOREIGN KEY ("eventId") REFERENCES "Event"("id")
-  ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_createdById_fkey"
-  FOREIGN KEY ("createdById") REFERENCES "User"("id")
-  ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
