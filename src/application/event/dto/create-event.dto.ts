@@ -87,6 +87,7 @@ export class CreateEventDto {
   dashboardId!: number;
 
   @ApiProperty({ example: 1, description: 'ID da origem do incidente' })
+  @IsOptional()
   @IsNumber()
   @IsInt()
   originId?: number | null;

@@ -123,9 +123,10 @@ export class UpdateEventDto {
   technicianIds?: number[];
 
   @ApiProperty({ example: 1, description: 'ID da origem do incidente' })
+  @IsOptional()
   @IsNumber()
   @IsInt()
-  originId?: number | null;
+  originId?: number;
 
   @ApiPropertyOptional({
     type: [ServiceImpactUpdateDto],
