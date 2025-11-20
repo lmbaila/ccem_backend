@@ -22,7 +22,7 @@ export class UpdateEventUseCase {
       });
     }
 
-    // ❌ Não pode atualizar evento cancelado
+    //  Não pode atualizar evento cancelado
     if (current.status === 'CANCELLED') {
       throw new BadRequestException({
         errorCode: 'EVENT_CANNOT_UPDATE_CANCELLED',
@@ -30,7 +30,7 @@ export class UpdateEventUseCase {
       });
     }
 
-    // ❌ Ticket duplicado
+    // verificar se o  Ticket foi duplicado
     if (dto.ticket && dto.ticket !== current.ticket) {
       const existing = await this.repo.findByTicket(dto.ticket);
 
@@ -43,7 +43,7 @@ export class UpdateEventUseCase {
       }
     }
 
-    // ❌ Impedir finalizar evento com serviços sem endAt
+    // Impedir finalizar evento com servicos sem endAt
     if (dto.status === 'COMPLETED') {
       const event = await this.repo.get(id);
 
@@ -65,7 +65,7 @@ export class UpdateEventUseCase {
       }
     }
 
-    // ✔️ Atualizar o evento
+    // Atualizar o evento
     return this.repo.update(id, {
       summary: dto.summary,
       description: dto.description,
@@ -73,6 +73,7 @@ export class UpdateEventUseCase {
       status: dto.status,
       priority: dto.priority,
       technicianIds: dto.technicianIds,
+      originId: dto.originId,
       services: dto.services?.map((s) => ({
         serviceId: s.serviceId!,
         startAt: s.startAt ? new Date(s.startAt) : new Date(),

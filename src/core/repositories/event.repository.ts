@@ -27,6 +27,7 @@ export interface CreateEventInput {
   dashboardId: number;
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  originId?: number | null;
 
   /** Servicos impactados (obrigatorio pelo menos um) */
   services: ServiceImpactInput[];
@@ -53,6 +54,7 @@ export interface UpdateEventInput {
   ticket: string;
   status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  originId?: number | null;
 
   services?: ServiceImpactInput[];
   technicianIds?: number[];

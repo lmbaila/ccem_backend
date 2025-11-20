@@ -76,8 +76,9 @@ model Event {
   code        String            @unique
   summary     String
   description String
-  ticket      String           @unique 
+  ticket      String            @unique
   dashboardId Int
+  originId    Int?
   status      EventStatus
   priority    Priority
   createdAt   DateTime          @default(now())
@@ -85,13 +86,14 @@ model Event {
   createdById Int
   createdBy   User              @relation("EventCreator", fields: [createdById], references: [id])
   dashboard   Dashboard         @relation(fields: [dashboardId], references: [id])
+  origin      Origin?           @relation(fields: [originId], references: [id])
   services    EventService[]
   technicians EventTechnician[]
   feedbacks   Feedback[]
 }
 
 model EventService {
-  eventId   String   @db.Uuid
+  eventId   String    @db.Uuid
   serviceId Int
   startAt   DateTime
   endAt     DateTime?
@@ -103,7 +105,7 @@ model EventService {
 }
 
 model EventTechnician {
-  eventId      String   @db.Uuid
+  eventId      String @db.Uuid
   technicianId Int
 
   event      Event      @relation(fields: [eventId], references: [id])
@@ -123,4 +125,10 @@ model Feedback {
 
   event     Event @relation(fields: [eventId], references: [id])
   createdBy User  @relation(fields: [createdById], references: [id])
+}
+
+model Origin {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  events Event[]
 }

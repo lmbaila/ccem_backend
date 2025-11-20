@@ -9,6 +9,7 @@ import { FeedbacksHttpModule } from './modules/feedbacks/feedbacks.module';
 import { DashboardsHttpModule } from './modules/dashboards/dashboards.module';
 import { TeamHttpModule } from './modules/team/team.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
+import { OriginModule } from './modules/origin/orgin.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { MetricsModule } from './modules/metrics/metrics.module';
     DashboardsHttpModule,
     TeamHttpModule,
     MetricsModule,
+    OriginModule,
   ],
 })
 export class AppModule {}

@@ -3,6 +3,7 @@ import {
   IsArray,
   IsDateString,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNotEmptyObject,
   IsNumber,
@@ -84,6 +85,11 @@ export class CreateEventDto {
   @ApiProperty({ example: 1, description: 'ID do dashboard (ferramenta de monitoria).' })
   @IsNumber()
   dashboardId!: number;
+
+  @ApiProperty({ example: 1, description: 'ID da origem do incidente' })
+  @IsNumber()
+  @IsInt()
+  originId?: number | null;
 
   @ApiProperty({
     enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],

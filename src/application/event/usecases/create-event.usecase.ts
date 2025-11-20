@@ -48,6 +48,7 @@ export class CreateEventUseCase {
       status: dto.status,
       priority: dto.priority,
       technicianIds: dto.technicianIds,
+      originId: dto.originId,
       services: dto.services.map((s) => ({
         serviceId: s.serviceId,
         startAt: new Date(s.startAt),

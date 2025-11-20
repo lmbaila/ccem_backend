@@ -1,7 +1,8 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -120,6 +121,11 @@ export class UpdateEventDto {
   @IsOptional()
   @IsArray()
   technicianIds?: number[];
+
+  @ApiProperty({ example: 1, description: 'ID da origem do incidente' })
+  @IsNumber()
+  @IsInt()
+  originId?: number | null;
 
   @ApiPropertyOptional({
     type: [ServiceImpactUpdateDto],
