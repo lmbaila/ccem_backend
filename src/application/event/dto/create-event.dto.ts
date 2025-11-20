@@ -90,7 +90,7 @@ export class CreateEventDto {
   @IsOptional()
   @IsNumber()
   @IsInt()
-  originId?: number | null;
+  originId?: number;
 
   @ApiProperty({
     enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
