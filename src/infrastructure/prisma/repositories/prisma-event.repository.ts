@@ -131,10 +131,6 @@ export class PrismaEventRepository implements IEventRepository {
       };
     });
 
-    console.log('================ FEEDBACKS RECEBIDOS ================');
-    console.log(feedbacks);
-    console.log('=====================================================');
-
     return this.prisma.$transaction(async (tx) => {
       // ✅ Cria o evento principal
       const event = await tx.event.create({
