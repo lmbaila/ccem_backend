@@ -4,36 +4,53 @@ import { formatDurationHuman, getDateFromRange } from '../../utils/date-range.ut
 import { MetricsRange } from 'src/modules/metrics/dto/get-metrics-range.dto';
 import { parse, addMonths, isAfter, format } from 'date-fns';
 import { GetServiceAvailabilityDto } from 'src/modules/metrics/dto/get-service-availability.dto';
+
 function parseMonthYear(value: string): Date {
   const [month, year] = value.split('/').map(Number);
-  return new Date(year, month - 1, 1); // mês - 1 porque Date() usa base 0 (0 = Jan)
+  return new Date(year, month - 1, 1);
 }
+
 @Injectable()
 export class PrismaMetricsRepository {
   constructor(private prisma: PrismaService) {}
 
-  /** Resumo geral */
+  /** ---------------------------------------------------------------------
+   *  RESUMO GERAL
+   * --------------------------------------------------------------------- */
   async overview(range: MetricsRange) {
     const since = getDateFromRange(range);
 
     const [total, active, completed, feedbackCount, positiveFeedback] = await Promise.all([
-      this.prisma.event.count({ where: { createdAt: { gte: since } } }),
       this.prisma.event.count({
-        where: { createdAt: { gte: since }, status: { in: ['PENDING', 'IN_PROGRESS'] } },
+        where: { createdAt: { gte: since }, status: { not: 'CANCELLED' } },
+      }),
+      this.prisma.event.count({
+        where: {
+          createdAt: { gte: since },
+          status: { in: ['PENDING', 'IN_PROGRESS'] },
+        },
       }),
       this.prisma.event.count({
         where: { createdAt: { gte: since }, status: 'COMPLETED' },
       }),
-      this.prisma.feedback.count({ where: { createdAt: { gte: since } } }),
       this.prisma.feedback.count({
-        where: { createdAt: { gte: since }, rating: { gte: 4 } },
+        where: {
+          createdAt: { gte: since },
+          event: { status: { not: 'CANCELLED' } },
+        },
+      }),
+      this.prisma.feedback.count({
+        where: {
+          createdAt: { gte: since },
+          rating: { gte: 4 },
+          event: { status: { not: 'CANCELLED' } },
+        },
       }),
     ]);
 
-    // MTTR: media (endAt - startAt) nos links com endAt
     const links = await this.prisma.eventService.findMany({
       where: {
-        event: { createdAt: { gte: since } },
+        event: { createdAt: { gte: since }, status: { not: 'CANCELLED' } },
         endAt: { not: null },
       },
       select: { startAt: true, endAt: true },
@@ -47,9 +64,9 @@ export class PrismaMetricsRepository {
             0,
           ) / links.length;
 
-    // disponibilidade media aproximada: 100 - (downtime acumulado / periodo total)
     const periodMs = Date.now() - since.getTime();
     const totalDowntimeMs = await this.totalDowntimeInRangeMs(since);
+
     const avgAvailability =
       periodMs > 0 ? Math.max(0, 100 - (totalDowntimeMs / periodMs) * 100) : 100;
 
@@ -69,7 +86,9 @@ export class PrismaMetricsRepository {
     };
   }
 
-  /** Top servicos mais impactados por downtime (minutos) */
+  /** ---------------------------------------------------------------------
+   *  TOP SERVIÇOS MAIS IMPACTADOS
+   * --------------------------------------------------------------------- */
   async topImpactedServices(range: MetricsRange) {
     const since = getDateFromRange(range);
 
@@ -106,7 +125,9 @@ export class PrismaMetricsRepository {
     return { range, generatedAt: new Date().toISOString(), topImpactedServices: data };
   }
 
-  /** Servicos indisponiveis agora (links sem endAt, eventos ativos) */
+  /** ---------------------------------------------------------------------
+   *  SERVIÇOS INDISPONÍVEIS NO MOMENTO
+   * --------------------------------------------------------------------- */
   async unavailableServicesNow() {
     const links = await this.prisma.eventService.findMany({
       where: {
@@ -126,15 +147,17 @@ export class PrismaMetricsRepository {
         serviceId: l.service.id,
         service: l.service.name,
         eventCode: l.event.code,
-        status: l.event.status,
         priority: l.event.priority,
+        status: l.event.status,
         since: l.startAt,
         durationHuman: formatDurationHuman(Date.now() - new Date(l.startAt).getTime()),
       })),
     };
   }
 
-  /** Feedbacks mais recentes (tempo real) */
+  /** ---------------------------------------------------------------------
+   *  FEEDBACKS EM TEMPO REAL
+   * --------------------------------------------------------------------- */
   async liveFeedbacks(limit = 20) {
     const items = await this.prisma.feedback.findMany({
       orderBy: { createdAt: 'desc' },
@@ -144,11 +167,7 @@ export class PrismaMetricsRepository {
         createdBy: { select: { username: true } },
       },
       where: {
-        event: {
-          status: {
-            not: 'CANCELLED',
-          },
-        },
+        event: { status: { not: 'CANCELLED' } },
       },
     });
 
@@ -157,14 +176,16 @@ export class PrismaMetricsRepository {
         eventCode: f.event.code,
         eventSummary: f.event.summary,
         comment: f.comment,
-        rating: f.rating ?? null,
+        rating: f.rating,
         author: f.createdBy.username,
         createdAt: f.createdAt,
       })),
     };
   }
 
-  /** Eventos por ferramenta de monitoria (Dashboard) */
+  /** ---------------------------------------------------------------------
+   *  EVENTOS POR FERRAMENTA DE MONITORIA
+   * --------------------------------------------------------------------- */
   async eventsByDashboard(range: MetricsRange) {
     const since = getDateFromRange(range);
 
@@ -194,11 +215,12 @@ export class PrismaMetricsRepository {
     };
   }
 
-  /** Timeline: agregacao por hora (24h) ou por dia (>= weekly) */
+  /** ---------------------------------------------------------------------
+   *  TIMELINE DE EVENTOS
+   * --------------------------------------------------------------------- */
   async timeline(range: MetricsRange) {
     const since = getDateFromRange(range);
 
-    // simplificado em JS; se quiser ultra-perf, podes usar raw SQL agrupando por date_trunc
     const events = await this.prisma.event.findMany({
       where: { createdAt: { gte: since }, status: { not: 'CANCELLED' } },
       select: { createdAt: true, status: true, updatedAt: true },
@@ -216,30 +238,38 @@ export class PrismaMetricsRepository {
     for (const e of events) {
       const kc = keyOf(new Date(e.createdAt));
       if (!buckets.has(kc)) buckets.set(kc, { created: 0, completed: 0 });
-      buckets.get(kc)!.created += 1;
+      buckets.get(kc)!.created++;
 
       if (e.status === 'COMPLETED') {
         const ku = keyOf(new Date(e.updatedAt));
         if (!buckets.has(ku)) buckets.set(ku, { created: 0, completed: 0 });
-        buckets.get(ku)!.completed += 1;
+        buckets.get(ku)!.completed++;
       }
     }
 
     const labels = Array.from(buckets.keys()).sort(
       (a, b) => new Date(a).getTime() - new Date(b).getTime(),
     );
-    const createdEvents = labels.map((k) => buckets.get(k)!.created);
-    const resolvedEvents = labels.map((k) => buckets.get(k)!.completed);
 
-    return { range, labels, createdEvents, resolvedEvents };
+    return {
+      range,
+      labels,
+      createdEvents: labels.map((k) => buckets.get(k)!.created),
+      resolvedEvents: labels.map((k) => buckets.get(k)!.completed),
+    };
   }
 
-  /** helper: downtime acumulado do periodo (todos os servicos) */
+  /** ---------------------------------------------------------------------
+   *  CALCULAR DOWNTIME TOTAL
+   * --------------------------------------------------------------------- */
   private async totalDowntimeInRangeMs(since: Date) {
     const links = await this.prisma.eventService.findMany({
-      where: { event: { createdAt: { gte: since }, status: { not: 'CANCELLED' } } },
+      where: {
+        event: { createdAt: { gte: since }, status: { not: 'CANCELLED' } },
+      },
       select: { startAt: true, endAt: true },
     });
+
     return links.reduce((acc, l) => {
       const start = new Date(l.startAt).getTime();
       const end = l.endAt ? new Date(l.endAt).getTime() : Date.now();
@@ -247,27 +277,31 @@ export class PrismaMetricsRepository {
     }, 0);
   }
 
+  /** ---------------------------------------------------------------------
+   *  DISPONIBILIDADE DOS SERVIÇOS (INTERVALO DE MESES)
+   * --------------------------------------------------------------------- */
   async getServiceAvailability(input: GetServiceAvailabilityDto) {
     const { services = [], startPeriod, endPeriod, target = 99 } = input;
 
-    // Validacao logica
     const startDate = parseMonthYear(startPeriod);
     const endDate = parseMonthYear(endPeriod);
+
     if (isAfter(startDate, endDate)) {
       throw new BadRequestException('O período final deve ser posterior ao inicial.');
     }
 
-    // Gerar lista de meses no intervalo
     const months: { label: string; start: Date; end: Date }[] = [];
     let current = startDate;
+
     while (!isAfter(current, endDate)) {
-      const label = `${format(current, 'MMM')}/${format(current, 'yy')}`;
-      const next = addMonths(current, 1);
-      months.push({ label, start: current, end: next });
-      current = next;
+      months.push({
+        label: `${format(current, 'MMM')}/${format(current, 'yy')}`,
+        start: current,
+        end: addMonths(current, 1),
+      });
+      current = addMonths(current, 1);
     }
 
-    // Buscar servicos
     const selectedServices = services.length
       ? await this.prisma.service.findMany({ where: { id: { in: services } } })
       : await this.prisma.service.findMany();
@@ -276,7 +310,6 @@ export class PrismaMetricsRepository {
       throw new BadRequestException('Nenhum serviço encontrado.');
     }
 
-    // Calcular metricas por servico e mes
     const result = await Promise.all(
       selectedServices.map(async (srv) => {
         const monthly = await Promise.all(
@@ -285,26 +318,27 @@ export class PrismaMetricsRepository {
               where: {
                 serviceId: srv.id,
                 startAt: { gte: m.start, lt: m.end },
+                event: { status: { not: 'CANCELLED' } },
               },
             });
 
             const totalMinutes = 30 * 24 * 60;
+
             const downtimeMinutes = events.reduce((acc, e) => {
-              const start = e.startAt ? new Date(e.startAt).getTime() : 0;
+              const start = new Date(e.startAt).getTime();
               const end = e.endAt ? new Date(e.endAt).getTime() : start;
-              return acc + Math.max((end - start) / (1000 * 60), 0);
+              return acc + Math.max((end - start) / 60000, 0);
             }, 0);
 
             const uptimeMinutes = totalMinutes - downtimeMinutes;
             const availabilityPercent = (uptimeMinutes / totalMinutes) * 100;
-            const incidents = events.length;
 
             return {
               month: m.label,
               uptimeMinutes,
               downtimeMinutes,
               availabilityPercent: Number(availabilityPercent.toFixed(2)),
-              incidents,
+              incidents: events.length,
             };
           }),
         );
