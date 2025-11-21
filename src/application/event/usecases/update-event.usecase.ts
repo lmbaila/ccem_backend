@@ -18,7 +18,7 @@ export class UpdateEventUseCase {
     if (!current) {
       throw new BadRequestException({
         errorCode: 'EVENT_NOT_FOUND',
-        message: 'Evento não encontrado.',
+        message: 'Evento nao encontrado.',
       });
     }
 
@@ -30,7 +30,7 @@ export class UpdateEventUseCase {
       });
     }
 
-    // verificar se o  Ticket foi duplicado
+    // Ticket duplicado ao atualizar
     if (dto.ticket && dto.ticket !== current.ticket) {
       const existing = await this.repo.findByTicket(dto.ticket);
 
@@ -43,10 +43,11 @@ export class UpdateEventUseCase {
       }
     }
 
-    // Impedir finalizar evento com servicos sem endAt
+    //  Impedir concluir evento com serviços sem endAt
     if (dto.status === 'COMPLETED') {
       const event = await this.repo.get(id);
 
+      // Prefere serviços enviados já convertidos
       const allServices: ServiceInput[] =
         dto.services ??
         event.services.map((s: any) => ({
@@ -65,15 +66,15 @@ export class UpdateEventUseCase {
       }
     }
 
-    // Atualizar o evento
+    // ✅ Atualizar evento
     return this.repo.update(id, {
       summary: dto.summary,
       description: dto.description,
       ticket: dto.ticket,
       status: dto.status,
       priority: dto.priority,
-      technicianIds: dto.technicianIds,
       originId: dto.originId,
+      technicianIds: dto.technicianIds,
       services: dto.services?.map((s) => ({
         serviceId: s.serviceId!,
         startAt: s.startAt ? new Date(s.startAt) : new Date(),
