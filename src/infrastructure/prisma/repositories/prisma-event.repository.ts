@@ -183,7 +183,7 @@ export class PrismaEventRepository implements IEventRepository {
     const { services, technicianIds, feedbacks = [], ...rest } = input;
 
     return this.prisma.$transaction(async (tx) => {
-      // 🔧 Atualiza servicos (recria)
+      // 🔧 Atualiza serviços (recria)
       if (Array.isArray(services)) {
         await tx.eventService.deleteMany({ where: { eventId: id } });
         if (services.length) {
@@ -198,7 +198,7 @@ export class PrismaEventRepository implements IEventRepository {
         }
       }
 
-      // 🔧 Atualiza tecnicos (recria)
+      // 🔧 Atualiza técnicos (recria)
       if (Array.isArray(technicianIds)) {
         await tx.eventTechnician.deleteMany({ where: { eventId: id } });
         if (technicianIds.length) {
@@ -211,7 +211,7 @@ export class PrismaEventRepository implements IEventRepository {
         }
       }
 
-      // ✅ Adiciona novos feedbacks sem apagar os antigos
+      // 🔧 Cria novos feedbacks sem apagar os antigos
       if (feedbacks.length > 0) {
         await Promise.all(
           feedbacks.map((f) =>
@@ -227,7 +227,13 @@ export class PrismaEventRepository implements IEventRepository {
         );
       }
 
-      // ✅ Atualiza campos gerais e retorna evento completo
+      // 🛑 regra: se for CANCELLED → renomeia ticket
+      if (rest.status === 'CANCELLED') {
+        const timestamp = Date.now();
+        rest.ticket = `${rest.ticket}_cancelled_${timestamp}`;
+      }
+
+      // ✅ Atualiza e retorna evento completo com relacionamentos
       return tx.event.update({
         where: { id },
         data: { ...rest },
