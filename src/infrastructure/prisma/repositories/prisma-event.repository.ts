@@ -241,8 +241,11 @@ export class PrismaEventRepository implements IEventRepository {
         data: { ...rest },
         include: {
           services: { include: { service: true } },
+          dashboard: true,
           technicians: { include: { technician: true } },
           feedbacks: { include: { createdBy: true } },
+          createdBy: true,
+          origin: true,
         },
       });
     });
@@ -260,8 +263,11 @@ export class PrismaEventRepository implements IEventRepository {
       where: { code },
       include: {
         services: { include: { service: true } },
+        dashboard: true,
         technicians: { include: { technician: true } },
         feedbacks: { include: { createdBy: true } },
+        createdBy: true,
+        origin: true,
       },
     });
   }
@@ -274,6 +280,7 @@ export class PrismaEventRepository implements IEventRepository {
         feedbacks: true,
         dashboard: true,
         createdBy: true,
+        origin: true,
       },
     });
   }
