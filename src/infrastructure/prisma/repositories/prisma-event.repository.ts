@@ -49,6 +49,7 @@ export class PrismaEventRepository implements IEventRepository {
         services: { include: { service: true } },
         technicians: { include: { technician: true } },
         feedbacks: { include: { createdBy: true } },
+        origin: true,
       },
       orderBy: { createdAt: 'desc' }, // ✅ por defeito, mais recentes primeiro
       skip,
@@ -97,6 +98,7 @@ export class PrismaEventRepository implements IEventRepository {
         services: { include: { service: true } },
         technicians: { include: { technician: true } },
         feedbacks: { include: { createdBy: true } },
+        origin: true,
       },
     });
   }
